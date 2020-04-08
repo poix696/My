@@ -1,0 +1,51 @@
+
+---
+- hosts: '{{ host }}'
+  become: yes
+  vars:
+    repos1: https://download.docker.com/linux/centos/docker-ce.repo
+    des: /etc/yum.repos.d/docker-ce.repo
+    repos2: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.6-3.3.el7.x86_64.rpm
+
+  tasks:
+
+  - block: #=========FOR CENTOS 7=========
+
+      - name: INSTALL YUM UTILS
+        yum: name=yum-utils state=latest
+
+      - name: INSTALL D-M-P-D
+        yum: name=device-mapper-persistent-data
+
+      - name: INSTALL LVM2
+        yum: name=lvm2 state=latest
+ 
+      - name: ADD DOCKER REPO
+        get_url: url={{ repos1 }} dest={{ des }}
+
+      - name: INSTALL DOCKER
+        package: name=docker-ce state=latest
+
+    when: ansible_distribution == "CentOS"
+  - block: #================FOR RED HAT================
+
+      - name: ADD DOCKER REPO
+        command: dnf config-manager --add-repo {{ repos1 }}
+
+      - name: INSTALL CONTAINERD.IO
+        dnf: name={{ repos2 }} state=latest
+ 
+      - name: INSTALL DOCKER
+        dnf: name=docker-ce state=latest
+
+    when: ansible_distribution == "Red Hat"
+
+  - name: INSTALL DOCKER-PY
+    pip: name=docker-py state=latest 
+
+  - name: START DOCKER SERCVICE 
+    service: name=docker state=started enabled=yes
+
+  - name: ADD USER
+    user: name=psapp groups=docker append=yes state=present
+       
