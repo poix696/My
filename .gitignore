@@ -4,3 +4,5 @@
 lib/
 #ingore pyvenv.cfg file
 pyvenv.cfg
+#ignore ansible log file
+ans/ans.log
